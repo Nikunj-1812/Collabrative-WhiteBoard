@@ -1,0 +1,6 @@
+{
+  "name": "@collaborative-whiteboard/shared",
+  "version": "0.1.0",
+  "main": "constants/index.js",
+  "type": "commonjs"
+}
