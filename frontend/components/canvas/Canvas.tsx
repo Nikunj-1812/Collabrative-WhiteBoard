@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState } from "react";
+import html2canvas from "html2canvas";
 import { GridBackground } from "./GridBackground";
 import { StickyNote } from "./StickyNote";
 import { useBoardStore } from "@/store/boardStore";
@@ -107,6 +108,8 @@ export const Canvas = ({
   const isDraggingImageRef = useRef(false);
   const draggedImageIdRef = useRef<string | null>(null);
   const imageDragStartRef = useRef<{ x: number; y: number; imageX: number; imageY: number } | null>(null);
+  const isCapturingRef = useRef(false);
+  const captureStartRef = useRef<{ x: number; y: number } | null>(null);
   const notes = useBoardStore((state) => state.notes);
   const addNote = useBoardStore((state) => state.addNote);
   const updateNote = useBoardStore((state) => state.updateNote);
@@ -304,8 +307,47 @@ export const Canvas = ({
   const [images, setImages] = useState<DrawImage[]>([]);
   const [addingText, setAddingText] = useState<{ x: number; y: number } | null>(null);
   const [selectedNoteIds, setSelectedNoteIds] = useState<Set<string>>(new Set());
+  const [captureRect, setCaptureRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const textInputRef = useRef<HTMLInputElement | null>(null);
   const actionStackRef = useRef<CanvasAction[]>([]);
+
+  const captureRegion = async (rect: { x: number; y: number; width: number; height: number }) => {
+    if (!containerRef.current) return;
+    const { x, y, width, height } = rect;
+    if (width < 4 || height < 4) return;
+
+    try {
+      const canvas = await html2canvas(containerRef.current, {
+        backgroundColor: null,
+        scale: window.devicePixelRatio || 1,
+        x,
+        y,
+        width,
+        height,
+        ignoreElements: (el) => el.getAttribute("data-capture-overlay") === "true"
+      });
+
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        const now = new Date();
+        const stamp = now
+          .toISOString()
+          .replace(/[:.]/g, "-")
+          .replace("T", "_")
+          .slice(0, 19);
+        link.href = url;
+        link.download = `whiteboard-capture-${stamp}.png`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    } catch (error) {
+      console.error("[Canvas] Region capture failed", error);
+    }
+  };
 
   // Helper function to check if a point is within a note's bounds (note width is ~192px, height ~96px)
   const isPointInNote = (x: number, y: number, note: typeof notes[0]): boolean => {
@@ -475,6 +517,15 @@ export const Canvas = ({
     if (!rect) return;
     emitCursor(event.clientX - rect.left, event.clientY - rect.top);
 
+    if (activeTool === "REGION_CAPTURE" && isCapturingRef.current && captureStartRef.current) {
+      const x = Math.min(captureStartRef.current.x, event.clientX - rect.left);
+      const y = Math.min(captureStartRef.current.y, event.clientY - rect.top);
+      const width = Math.abs(event.clientX - rect.left - captureStartRef.current.x);
+      const height = Math.abs(event.clientY - rect.top - captureStartRef.current.y);
+      setCaptureRect({ x, y, width, height });
+      return;
+    }
+
     if (activeTool === "PAN" && isPanningRef.current && lastPointRef.current) {
       const dx = event.movementX || event.clientX - lastPointRef.current.x;
       const dy = event.movementY || event.clientY - lastPointRef.current.y;
@@ -589,6 +640,19 @@ export const Canvas = ({
   };
 
   const handlePointerDown = (event: React.PointerEvent) => {
+    if (activeTool === "REGION_CAPTURE") {
+      event.preventDefault();
+      event.stopPropagation();
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      isCapturingRef.current = true;
+      captureStartRef.current = { x, y };
+      setCaptureRect({ x, y, width: 0, height: 0 });
+      event.currentTarget.setPointerCapture(event.pointerId);
+      return;
+    }
     if (activeTool === "PAN") {
       event.preventDefault();
       event.stopPropagation();
@@ -805,6 +869,32 @@ export const Canvas = ({
   };
 
   const handlePointerUp = (event: React.PointerEvent) => {
+    if (activeTool === "REGION_CAPTURE") {
+      if (isCapturingRef.current) {
+        const rect = containerRef.current?.getBoundingClientRect();
+        const start = captureStartRef.current;
+        isCapturingRef.current = false;
+        event.currentTarget.releasePointerCapture(event.pointerId);
+        if (rect && start) {
+          const endX = event.clientX - rect.left;
+          const endY = event.clientY - rect.top;
+          const nextRect = {
+            x: Math.min(start.x, endX),
+            y: Math.min(start.y, endY),
+            width: Math.abs(endX - start.x),
+            height: Math.abs(endY - start.y)
+          };
+          if (nextRect.width < 4 || nextRect.height < 4) {
+            void captureRegion({ x: 0, y: 0, width: rect.width, height: rect.height });
+          } else {
+            void captureRegion(nextRect);
+          }
+        }
+        captureStartRef.current = null;
+        setCaptureRect(null);
+      }
+      return;
+    }
     if (activeTool === "PAN") {
       event.preventDefault();
       event.stopPropagation();
@@ -905,6 +995,18 @@ export const Canvas = ({
       onPointerCancel={handlePointerUp}
       onWheel={handleWheel}
     >
+      {captureRect && (
+        <div
+          data-capture-overlay="true"
+          className="pointer-events-none absolute border-2 border-dashed border-blue-500 bg-blue-400/10"
+          style={{
+            left: captureRect.x,
+            top: captureRect.y,
+            width: captureRect.width,
+            height: captureRect.height
+          }}
+        />
+      )}
       <div
         className="absolute left-0 top-0"
         style={{ width: BOARD_SIZE, height: BOARD_SIZE, transform, transformOrigin: "0 0" }}

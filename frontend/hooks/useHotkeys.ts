@@ -10,7 +10,8 @@ const HOTKEYS: Record<string, string> = {
   s: "STICKY",
   i: "IMAGE",
   e: "ERASER",
-  h: "PAN"
+  h: "PAN",
+  c: "REGION_CAPTURE"
 };
 
 export const useHotkeys = () => {
