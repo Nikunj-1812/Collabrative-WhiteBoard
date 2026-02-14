@@ -10,7 +10,7 @@ export const ShareDialog = ({ boardId, isOpen, onClose }: ShareDialogProps) => {
   const [copied, setCopied] = useState(false);
 
   const shareUrl = typeof window !== "undefined" 
-    ? `${window.location.origin}?board=${boardId}`
+    ? `${window.location.origin}/board?board=${boardId}`
     : "";
 
   const handleCopyLink = () => {
