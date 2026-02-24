@@ -47,7 +47,6 @@ if (!MONGO_URI) {
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 app.use("/api/auth", authRoutes);
-app.use("/api/boards", boardRoutes);
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -56,6 +55,10 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
+
+// Make io accessible to routes
+app.set('io', io);
+app.use("/api/boards", boardRoutes);
 
 io.on("connection", (socket) => {
   registerBoardSocket(io, socket);

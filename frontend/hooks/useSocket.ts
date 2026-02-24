@@ -140,6 +140,12 @@ export const useSocket = (
   }, [socket, setNotes, addNote, updateNote, deleteNote, clearNotes, upsertCursor, removeCursor]);
 
   useEffect(() => {
+    // Don't join if boardId is empty or invalid
+    if (!boardId || boardId.trim() === "") {
+      console.log("[useSocket] Skipping board:join - no valid boardId");
+      return;
+    }
+    
     console.log("[useSocket] Joining board:", boardId, "for user:", user.id);
     socket.emit("board:join", { boardId, user });
 

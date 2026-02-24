@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiFetch, clearAuthSession, getAuthToken, getAuthUser } from "@/utils/api";
+import { HiX } from "react-icons/hi";
 
 interface Board {
   id: string;
@@ -17,6 +18,8 @@ export default function BoardsPage() {
   const [boards, setBoards] = useState<Board[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [joinDialogOpen, setJoinDialogOpen] = useState(false);
+  const [joinBoardId, setJoinBoardId] = useState("");
 
   const user = useMemo(() => getAuthUser(), []);
 
@@ -59,6 +62,14 @@ export default function BoardsPage() {
     router.replace("/login");
   };
 
+  const handleJoinBoard = () => {
+    if (joinBoardId.trim()) {
+      router.push(`/board?board=${joinBoardId.trim()}`);
+    }
+  };
+
+  const profileInitial = user?.name ? user.name[0]?.toUpperCase() : "U";
+
   const filteredBoards = user
     ? boards.filter((board) => board.ownerId === user.id)
     : boards;
@@ -71,7 +82,19 @@ export default function BoardsPage() {
             <h1 className="text-3xl font-bold">Your boards</h1>
             <p className="text-sm text-muted">Manage, open, and organize your workspaces.</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col-reverse items-center gap-4 md:flex-row md:gap-3">
+            {user && (
+              <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface/90 px-4 py-3 shadow-sm backdrop-blur">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold text-white">
+                  {profileInitial}
+                </div>
+                <div className="text-xs">
+                  <p className="font-semibold text-text">{user.name}</p>
+                  {user.email && <p className="text-muted">{user.email}</p>}
+                </div>
+              </div>
+            )}
+            <div className="flex items-center gap-3">
             <Link
               href="/boards/new"
               className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:from-blue-600 hover:to-blue-700"
@@ -79,11 +102,18 @@ export default function BoardsPage() {
               New board
             </Link>
             <button
+              onClick={() => setJoinDialogOpen(true)}
+              className="rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:from-purple-600 hover:to-purple-700"
+            >
+              Join Board
+            </button>
+            <button
               onClick={handleLogout}
               className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text hover:bg-surface"
             >
               Logout
             </button>
+            </div>
           </div>
         </header>
 
@@ -133,6 +163,61 @@ export default function BoardsPage() {
           </div>
         )}
       </div>
+
+      {/* Join Board Dialog */}
+      {joinDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="rounded-xl bg-white shadow-2xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Join Board by ID</h2>
+              <button
+                onClick={() => {
+                  setJoinDialogOpen(false);
+                  setJoinBoardId("");
+                }}
+                className="p-1 hover:bg-gray-100 rounded-lg transition"
+                aria-label="Close dialog"
+              >
+                <HiX size={24} className="text-gray-600" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Board ID
+                </label>
+                <input
+                  type="text"
+                  placeholder="Paste board ID here..."
+                  value={joinBoardId}
+                  onChange={(e) => setJoinBoardId(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleJoinBoard()}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  autoFocus
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => {
+                    setJoinDialogOpen(false);
+                    setJoinBoardId("");
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleJoinBoard}
+                  disabled={!joinBoardId.trim()}
+                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Join Board
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

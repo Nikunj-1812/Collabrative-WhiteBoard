@@ -37,11 +37,22 @@ export default function NewBoardPage() {
         method: "POST",
         body: JSON.stringify({ title: trimmed })
       });
+
+      if (!board || !board.id) {
+        throw new Error("Board creation failed: No board ID returned");
+      }
+
+      console.log("[BoardCreate] Board created successfully:", board);
+      console.log("[BoardCreate] Board ID:", board.id);
+      console.log("[BoardCreate] Board title:", board.title);
+      console.log("[BoardCreate] Navigating to /board?board=" + board.id);
+      
+      // Navigate directly without setTimeout
       router.push(`/board?board=${board.id}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to create board";
+      console.error("[BoardCreate] Error:", message);
       setError(message);
-    } finally {
       setIsSubmitting(false);
     }
   };

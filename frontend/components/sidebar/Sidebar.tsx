@@ -1,19 +1,28 @@
 import React from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { useBoardStore } from "@/store/boardStore";
 import { STICKY_COLORS } from "@/constants/index";
 import { useUIStore } from "@/store/uiStore";
+import { clearAuthSession } from "@/utils/api";
+import { CollaboratorsPanel } from "@/components/collaboration/CollaboratorsPanel";
 import { FaMousePointer, FaPen, FaShapes, FaFont, FaStickyNote, FaEraser, FaHandPaper, FaImage } from 'react-icons/fa';
-import { HiTrash, HiMoon, HiSun } from 'react-icons/hi';
+import { HiTrash, HiMoon, HiSun, HiLogout, HiArrowRight } from 'react-icons/hi';
 import { BsSquareFill, BsCircleFill, BsTriangleFill, BsDiamondFill, BsStarFill, BsArrowRightShort } from 'react-icons/bs';
+import type { Socket } from 'socket.io-client';
 
 interface SidebarProps {
   onAddNote: (color: string) => void;
   onClearAll?: () => void;
   onImageUpload?: (file: File) => void;
+  socket?: Socket;
+  boardId?: string;
+  currentUserId?: string;
+  leaderId?: string;
 }
 
-export const Sidebar = ({ onAddNote, onClearAll, onImageUpload }: SidebarProps) => {
+export const Sidebar = ({ onAddNote, onClearAll, onImageUpload, socket, boardId, currentUserId, leaderId }: SidebarProps) => {
+  const router = useRouter();
   const notes = useBoardStore((state) => state.notes);
   const stickyColor = useUIStore((state) => state.stickyColor);
   const setStickyColor = useUIStore((state) => state.setStickyColor);
@@ -85,6 +94,27 @@ export const Sidebar = ({ onAddNote, onClearAll, onImageUpload }: SidebarProps) 
     if (onClearAll) {
       onClearAll();
     }
+  };
+
+  const handleLogout = () => {
+    if (confirm("Are you sure you want to logout?")) {
+      // If current user is the leader, notify all collaborators before logging out
+      if (socket && boardId && currentUserId && currentUserId === leaderId) {
+        console.log("[Sidebar] Leader logging out, notifying collaborators");
+        socket.emit("board:leader-left", { boardId, leaderId: currentUserId });
+      }
+      clearAuthSession();
+      router.push("/login");
+    }
+  };
+
+  const handleGoToBoards = () => {
+    // If current user is the leader, notify all collaborators before leaving
+    if (socket && boardId && currentUserId && currentUserId === leaderId) {
+      console.log("[Sidebar] Leader leaving board, notifying collaborators");
+      socket.emit("board:leader-left", { boardId, leaderId: currentUserId });
+    }
+    router.push("/boards");
   };
 
   return (
@@ -257,6 +287,14 @@ export const Sidebar = ({ onAddNote, onClearAll, onImageUpload }: SidebarProps) 
           ))}
         </div>
       </div>
+
+      {/* Active Collaborators */}
+      {socket && boardId && (
+        <div className="border-t border-border pt-4">
+          <CollaboratorsPanel socket={socket} boardId={boardId} currentUserId={currentUserId} leaderId={leaderId} />
+        </div>
+      )}
+
       <div className="mt-auto space-y-2">
         <div className="flex gap-2">
           <button
@@ -274,6 +312,20 @@ export const Sidebar = ({ onAddNote, onClearAll, onImageUpload }: SidebarProps) 
             </button>
           )}
         </div>
+        <button
+          onClick={handleGoToBoards}
+          className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-blue-600 hover:to-blue-700 transition-all active:scale-95 flex items-center justify-center gap-2"
+          title="Go to boards page"
+        >
+          <HiArrowRight size={16} /> Go to Boards
+        </button>
+        <button
+          onClick={handleLogout}
+          className="w-full rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-orange-600 hover:to-red-600 transition-all active:scale-95 flex items-center justify-center gap-2"
+          title="Logout and go to login page"
+        >
+          <HiLogout size={16} /> Logout
+        </button>
       </div>
     </aside>
   );

@@ -14,13 +14,34 @@ const getPresenceMap = (boardId) => {
   return presenceByBoard.get(boardId);
 };
 
+// Helper function to validate board exists before operations
+const validateBoardExists = (boardId, socket) => {
+  const board = boardStore.getBoard(boardId);
+  if (!board) {
+    console.log(`[VALIDATE] Board ${boardId} does not exist, rejecting operation`);
+    socket.emit("board:not-found", { boardId });
+    return null;
+  }
+  return board;
+};
+
 const registerBoardSocket = (io, socket) => {
   console.log("[boardSocket] New socket connection:", socket.id);
 
   socket.on("board:join", ({ boardId, user }) => {
     console.log(`[JOIN] User ${user.id} joining board ${boardId}`);
+    
+    // Check if board exists - don't auto-create it
+    const board = boardStore.getBoard(boardId);
+    if (!board) {
+      console.log(`[JOIN] Board ${boardId} does not exist, rejecting join`);
+      console.log(`[JOIN] Available boards:`, boardStore.listBoards().map(b => b.id));
+      socket.emit("board:not-found", { boardId });
+      return;
+    }
+    
+    console.log(`[JOIN] Board ${boardId} found, title: ${board.title}`);
     socket.join(boardId);
-    const board = boardStore.ensureBoard(boardId);
 
     // Store which board this socket is on
     userBoardMap.set(socket.id, { boardId, userId: user.id });
@@ -86,7 +107,8 @@ const registerBoardSocket = (io, socket) => {
   });
 
   socket.on("board:note:create", ({ boardId, note }) => {
-    const board = boardStore.ensureBoard(boardId);
+    const board = validateBoardExists(boardId, socket);
+    if (!board) return;
     board.notes.push(note);
     boardStore.updateBoard(boardId, { notes: board.notes });
     socket.to(boardId).emit("board:note:created", note);
@@ -94,7 +116,8 @@ const registerBoardSocket = (io, socket) => {
 
   socket.on("board:note:update", ({ boardId, id, text, x, y }) => {
     console.log(`[boardSocket] Received note:update for ${id}:`, { text, x, y });
-    const board = boardStore.ensureBoard(boardId);
+    const board = validateBoardExists(boardId, socket);
+    if (!board) return;
     board.notes = board.notes.map((note) => {
       if (note.id === id) {
         const updated = { ...note };
@@ -116,14 +139,16 @@ const registerBoardSocket = (io, socket) => {
   });
 
   socket.on("board:note:delete", ({ boardId, id }) => {
-    const board = boardStore.ensureBoard(boardId);
+    const board = validateBoardExists(boardId, socket);
+    if (!board) return;
     board.notes = board.notes.filter((note) => note.id !== id);
     boardStore.updateBoard(boardId, { notes: board.notes });
     socket.to(boardId).emit("board:note:deleted", { id });
   });
 
   socket.on("board:path:delete", ({ boardId, id }) => {
-    const board = boardStore.ensureBoard(boardId);
+    const board = validateBoardExists(boardId, socket);
+    if (!board) return;
     if (!board.paths) board.paths = [];
     board.paths = board.paths.filter((path) => path.id !== id);
     boardStore.updateBoard(boardId, { paths: board.paths });
@@ -131,7 +156,8 @@ const registerBoardSocket = (io, socket) => {
   });
 
   socket.on("board:path:create", ({ boardId, path }) => {
-    const board = boardStore.ensureBoard(boardId);
+    const board = validateBoardExists(boardId, socket);
+    if (!board) return;
     if (!board.paths) board.paths = [];
     board.paths.push(path);
     boardStore.updateBoard(boardId, { paths: board.paths });
@@ -141,7 +167,8 @@ const registerBoardSocket = (io, socket) => {
   });
 
   socket.on("board:path:update", ({ boardId, path }) => {
-    const board = boardStore.ensureBoard(boardId);
+    const board = validateBoardExists(boardId, socket);
+    if (!board) return;
     if (!board.paths) board.paths = [];
     board.paths = board.paths.map((p) => (p.id === path.id ? path : p));
     boardStore.updateBoard(boardId, { paths: board.paths });
@@ -151,7 +178,8 @@ const registerBoardSocket = (io, socket) => {
   });
 
   socket.on("board:rect:delete", ({ boardId, id }) => {
-    const board = boardStore.ensureBoard(boardId);
+    const board = validateBoardExists(boardId, socket);
+    if (!board) return;
     if (!board.rects) board.rects = [];
     board.rects = board.rects.filter((rect) => rect.id !== id);
     boardStore.updateBoard(boardId, { rects: board.rects });
@@ -159,7 +187,8 @@ const registerBoardSocket = (io, socket) => {
   });
 
   socket.on("board:rect:create", ({ boardId, rect }) => {
-    const board = boardStore.ensureBoard(boardId);
+    const board = validateBoardExists(boardId, socket);
+    if (!board) return;
     if (!board.rects) board.rects = [];
     board.rects.push(rect);
     boardStore.updateBoard(boardId, { rects: board.rects });
@@ -168,7 +197,8 @@ const registerBoardSocket = (io, socket) => {
   });
 
   socket.on("board:rect:update", ({ boardId, rect }) => {
-    const board = boardStore.ensureBoard(boardId);
+    const board = validateBoardExists(boardId, socket);
+    if (!board) return;
     if (!board.rects) board.rects = [];
     board.rects = board.rects.map((r) => (r.id === rect.id ? rect : r));
     boardStore.updateBoard(boardId, { rects: board.rects });
@@ -177,7 +207,8 @@ const registerBoardSocket = (io, socket) => {
   });
 
   socket.on("board:text:delete", ({ boardId, id }) => {
-    const board = boardStore.ensureBoard(boardId);
+    const board = validateBoardExists(boardId, socket);
+    if (!board) return;
     if (!board.texts) board.texts = [];
     board.texts = board.texts.filter((text) => text.id !== id);
     boardStore.updateBoard(boardId, { texts: board.texts });
@@ -185,7 +216,8 @@ const registerBoardSocket = (io, socket) => {
   });
 
   socket.on("board:text:create", ({ boardId, text }) => {
-    const board = boardStore.ensureBoard(boardId);
+    const board = validateBoardExists(boardId, socket);
+    if (!board) return;
     if (!board.texts) board.texts = [];
     board.texts.push(text);
     boardStore.updateBoard(boardId, { texts: board.texts });
@@ -193,7 +225,8 @@ const registerBoardSocket = (io, socket) => {
   });
 
   socket.on("board:image:create", ({ boardId, image }) => {
-    const board = boardStore.ensureBoard(boardId);
+    const board = validateBoardExists(boardId, socket);
+    if (!board) return;
     if (!board.images) board.images = [];
     board.images.push(image);
     boardStore.updateBoard(boardId, { images: board.images });
@@ -202,7 +235,8 @@ const registerBoardSocket = (io, socket) => {
   });
 
   socket.on("board:image:update", ({ boardId, image }) => {
-    const board = boardStore.ensureBoard(boardId);
+    const board = validateBoardExists(boardId, socket);
+    if (!board) return;
     if (!board.images) board.images = [];
     board.images = board.images.map((img) => (img.id === image.id ? image : img));
     boardStore.updateBoard(boardId, { images: board.images });
@@ -211,7 +245,8 @@ const registerBoardSocket = (io, socket) => {
   });
 
   socket.on("board:image:delete", ({ boardId, id }) => {
-    const board = boardStore.ensureBoard(boardId);
+    const board = validateBoardExists(boardId, socket);
+    if (!board) return;
     if (!board.images) board.images = [];
     board.images = board.images.filter((img) => img.id !== id);
     boardStore.updateBoard(boardId, { images: board.images });
@@ -219,7 +254,8 @@ const registerBoardSocket = (io, socket) => {
   });
 
   socket.on("board:clear", ({ boardId }) => {
-    const board = boardStore.ensureBoard(boardId);
+    const board = validateBoardExists(boardId, socket);
+    if (!board) return;
     board.notes = [];
     board.paths = [];
     board.rects = [];
@@ -227,6 +263,21 @@ const registerBoardSocket = (io, socket) => {
     board.images = [];
     boardStore.updateBoard(boardId, { notes: [], paths: [], rects: [], texts: [], images: [] });
     io.to(boardId).emit("board:cleared");
+  });
+
+  // Clean up board state when board is deleted
+  socket.on("board:deleted", ({ boardId }) => {
+    console.log(`[SOCKET] Cleaning up board ${boardId} after deletion`);
+    // Clear presence for this board
+    presenceByBoard.delete(boardId);
+    // Remove board leader
+    boardLeaders.delete(boardId);
+    // Remove board info from all sockets
+    for (const [socketId, info] of userBoardMap.entries()) {
+      if (info.boardId === boardId) {
+        userBoardMap.delete(socketId);
+      }
+    }
   });
 
   socket.on("board:leave", ({ boardId, userId }) => {
@@ -249,12 +300,29 @@ const registerBoardSocket = (io, socket) => {
     console.log(`[KICK] Broadcast complete`);
   });
 
+  // Handle leader leaving the board - redirect all collaborators
+  socket.on("board:leader-left", ({ boardId, leaderId }) => {
+    console.log(`[LEADER-LEFT] Leader ${leaderId} left board ${boardId}, notifying all collaborators`);
+    // Notify all users (except the leader who already left) to go back to boards page
+    socket.to(boardId).emit("board:leader-left", { boardId, leaderId });
+  });
+
   // Handle socket disconnect - clean up presence
   socket.on("disconnect", () => {
     const boardInfo = userBoardMap.get(socket.id);
     if (boardInfo) {
       const { boardId, userId } = boardInfo;
       console.log(`[DISCONNECT] User ${userId} disconnecting from board ${boardId}`);
+      
+      // Check if the disconnecting user is the leader
+      const currentLeader = boardLeaders.get(boardId);
+      if (currentLeader === userId) {
+        console.log(`[DISCONNECT] Leader ${userId} disconnected from board ${boardId}, notifying all collaborators`);
+        io.to(boardId).emit("board:leader-left", { boardId, leaderId: userId });
+        // Remove the leader status since they've left
+        boardLeaders.delete(boardId);
+      }
+      
       const presence = getPresenceMap(boardId);
       presence.delete(userId);
       console.log(`[PRESENCE] Board ${boardId} now has ${presence.size} users`);

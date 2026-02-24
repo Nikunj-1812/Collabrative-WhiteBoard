@@ -20,7 +20,7 @@ import { HiShare } from "react-icons/hi";
 export default function BoardPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const boardId = searchParams?.get("board") || "default-board";
+  const [boardId, setBoardId] = useState<string | null>(null);
   const addNote = useBoardStore((state) => state.addNote);
   const clearNotes = useBoardStore((state) => state.clearNotes);
   const isDarkMode = useUIStore((state) => state.isDarkMode);
@@ -41,7 +41,6 @@ export default function BoardPage() {
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
   useHotkeys();
   const authUser = useMemo(() => getAuthUser(), []);
-  const profileInitial = authUser?.name ? authUser.name[0]?.toUpperCase() : "U";
 
   useEffect(() => {
     if (!getAuthToken()) {
@@ -50,7 +49,19 @@ export default function BoardPage() {
       return;
     }
     setIsAuthed(true);
-  }, [router]);
+
+    // Set board ID from search params
+    const id = searchParams?.get("board");
+    console.log("[BoardPage] Extracted board ID from URL:", id);
+    if (id) {
+      console.log("[BoardPage] Setting boardId state to:", id);
+      setBoardId(id);
+    } else {
+      console.log("[BoardPage] No board ID in URL, redirecting to boards list");
+      // If no board ID in URL, redirect back to boards list
+      router.push("/boards");
+    }
+  }, [router, searchParams]);
 
   const user = useMemo(
     () => {
@@ -79,7 +90,11 @@ export default function BoardPage() {
     [authUser]
   );
 
-  const socket = useSocket(boardId, user);
+  // Only initialize socket when boardId is available
+  const socket = useSocket(boardId || "", user);
+
+  console.log("[BoardPage] Current boardId state:", boardId);
+  console.log("[BoardPage] Socket will join board:", boardId || "(none)");
 
   // Add current user to cursors
   useEffect(() => {
@@ -123,6 +138,48 @@ export default function BoardPage() {
       socket.off("board:sync", handleBoardSync);
     };
   }, [socket, user.id]);
+
+  // Handle board deletion - redirect all collaborators to boards page
+  useEffect(() => {
+    const handleBoardDeleted = (payload: { boardId: string }) => {
+      console.log("[BoardPage] Board deleted:", payload.boardId);
+      alert("This board has been deleted by the owner. Redirecting to your boards...");
+      router.push("/boards");
+    };
+
+    socket.on("board:deleted", handleBoardDeleted);
+    return () => {
+      socket.off("board:deleted", handleBoardDeleted);
+    };
+  }, [socket, router]);
+
+  // Handle leader leaving - redirect all collaborators to boards page
+  useEffect(() => {
+    const handleLeaderLeft = (payload: { boardId: string; leaderId: string }) => {
+      console.log("[BoardPage] Leader left board:", payload.boardId);
+      alert("The board leader has left. Redirecting to your boards...");
+      router.push("/boards");
+    };
+
+    socket.on("board:leader-left", handleLeaderLeft);
+    return () => {
+      socket.off("board:leader-left", handleLeaderLeft);
+    };
+  }, [socket, router]);
+
+  // Handle board not found - redirect to boards page
+  useEffect(() => {
+    const handleBoardNotFound = (payload: { boardId: string }) => {
+      console.log("[BoardPage] Board not found:", payload.boardId);
+      alert("This board does not exist or has been deleted. Redirecting to your boards...");
+      router.push("/boards");
+    };
+
+    socket.on("board:not-found", handleBoardNotFound);
+    return () => {
+      socket.off("board:not-found", handleBoardNotFound);
+    };
+  }, [socket, router]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -179,9 +236,29 @@ export default function BoardPage() {
     return null;
   }
 
+  // Show loading state while checking auth or waiting for boardId
+  if (isAuthed === false || !boardId) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-bg">
+        <div className="flex flex-col items-center justify-center gap-4 text-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-accent border-t-transparent"></div>
+          <p className="text-base font-medium text-text">Loading board...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <main className="relative flex h-screen w-screen overflow-hidden bg-bg text-text">
-      <Sidebar onAddNote={handleAddNote} onClearAll={handleClearAll} onImageUpload={handleImageUpload} />
+      <Sidebar 
+        onAddNote={handleAddNote} 
+        onClearAll={handleClearAll} 
+        onImageUpload={handleImageUpload}
+        socket={socket}
+        boardId={boardId}
+        currentUserId={user.id}
+        leaderId={leaderId || undefined}
+      />
       <div className="relative flex flex-1">
         <Canvas
           socket={socket}
@@ -217,18 +294,6 @@ export default function BoardPage() {
         <div className="absolute right-4 top-4 z-40">
           <AvatarStack />
         </div>
-        {authUser && (
-          <div className="pointer-events-auto absolute right-4 top-16 z-40 flex items-center gap-3 rounded-2xl border border-border bg-surface/90 px-4 py-3 shadow-sm backdrop-blur">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold text-white">
-              {profileInitial}
-            </div>
-            <div className="text-xs">
-              <p className="font-semibold text-text">{authUser.name}</p>
-              {authUser.email && <p className="text-muted">{authUser.email}</p>}
-            </div>
-          </div>
-        )}
-        <CollaboratorsPanel socket={socket} boardId={boardId} currentUserId={user.id} leaderId={leaderId || undefined} />
         <ShareDialog
           boardId={boardId}
           isOpen={shareDialogOpen}
