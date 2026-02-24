@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { IconButton } from "@/components/ui/IconButton";
 import { useUIStore } from "@/store/uiStore";
 import { FaMousePointer, FaPen, FaShapes, FaFont, FaStickyNote, FaEraser, FaHandPaper, FaArrowRight, FaCropAlt } from 'react-icons/fa';
@@ -19,6 +19,13 @@ export const Toolbar = () => {
   const activeTool = useUIStore((state) => state.activeTool);
   const setTool = useUIStore((state) => state.setTool);
   const toggleTheme = useUIStore((state) => state.toggleTheme);
+  const [isThemeAnimating, setIsThemeAnimating] = useState(false);
+
+  const handleThemeToggle = () => {
+    setIsThemeAnimating(true);
+    toggleTheme();
+    setTimeout(() => setIsThemeAnimating(false), 600);
+  };
 
   return (
     <div className="pointer-events-auto flex items-center gap-2 rounded-2xl border-2 border-gray-300 bg-white p-3 shadow-2xl">
@@ -34,7 +41,15 @@ export const Toolbar = () => {
         </IconButton>
       ))}
       <div className="mx-2 h-8 w-px bg-gray-400" />
-      <IconButton onClick={toggleTheme} aria-label="Toggle theme" title="Toggle theme">
+      <IconButton 
+        onClick={handleThemeToggle} 
+        aria-label="Toggle theme" 
+        title="Toggle theme"
+        style={{
+          transform: isThemeAnimating ? "rotateY(180deg)" : "rotateY(0deg)",
+          transition: "transform 0.6s ease-in-out"
+        }}
+      >
         <HiMoon size={20} />
       </IconButton>
     </div>
@@ -56,6 +71,7 @@ export const ToolbarWithClear = ({
   const activeTool = useUIStore((state) => state.activeTool);
   const setTool = useUIStore((state) => state.setTool);
   const toggleTheme = useUIStore((state) => state.toggleTheme);
+  const [isThemeAnimating, setIsThemeAnimating] = useState(false);
 
   const handleClearClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -64,6 +80,12 @@ export const ToolbarWithClear = ({
     if (onClearAll) {
       onClearAll();
     }
+  };
+
+  const handleThemeToggle = () => {
+    setIsThemeAnimating(true);
+    toggleTheme();
+    setTimeout(() => setIsThemeAnimating(false), 600);
   };
 
   return (
@@ -94,7 +116,15 @@ export const ToolbarWithClear = ({
           <HiArrowsExpand size={18} />
         </IconButton>
       )}
-      <IconButton onClick={toggleTheme} aria-label="Toggle theme" title="Toggle theme">
+      <IconButton 
+        onClick={handleThemeToggle} 
+        aria-label="Toggle theme" 
+        title="Toggle theme"
+        style={{
+          transform: isThemeAnimating ? "rotateY(180deg)" : "rotateY(0deg)",
+          transition: "transform 0.6s ease-in-out"
+        }}
+      >
         <HiMoon size={20} />
       </IconButton>
       {onClearAll && (

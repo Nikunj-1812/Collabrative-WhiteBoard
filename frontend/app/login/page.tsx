@@ -10,10 +10,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
+    // Check if user is already authenticated
     if (getAuthToken()) {
       router.replace("/boards");
+    } else {
+      setIsCheckingAuth(false);
     }
   }, [router]);
 
@@ -21,7 +25,7 @@ export default function LoginPage() {
     event.preventDefault();
     setError(null);
 
-    const trimmedEmail = email.trim();
+    const trimmedEmail = email.trim().toLowerCase();
     if (!trimmedEmail || !trimmedEmail.includes("@")) {
       setError("Please enter a valid email address.");
       return;
@@ -48,6 +52,18 @@ export default function LoginPage() {
     }
   };
 
+  // Show loading while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-bg px-4 text-text">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-accent border-t-transparent"></div>
+          <p className="text-sm text-muted">Checking authentication...</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-bg px-4 text-text">
       <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-8 shadow-xl">
@@ -66,6 +82,8 @@ export default function LoginPage() {
             className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text outline-none focus:border-accent"
             placeholder="you@example.com"
             autoFocus
+            disabled={isSubmitting}
+            autoComplete="email"
           />
 
           <label className="block text-sm font-medium text-muted" htmlFor="password">
@@ -78,9 +96,11 @@ export default function LoginPage() {
             onChange={(event) => setPassword(event.target.value)}
             className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text outline-none focus:border-accent"
             placeholder="Enter your password"
+            disabled={isSubmitting}
+            autoComplete="current-password"
           />
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
 
           <button
             type="submit"
@@ -90,6 +110,12 @@ export default function LoginPage() {
             {isSubmitting ? "Signing in..." : "Sign in"}
           </button>
         </form>
+
+        <div className="mt-4 text-center">
+          <a className="text-sm text-blue-600 hover:text-blue-700 hover:underline" href="/forgot-password">
+            Forgot your password?
+          </a>
+        </div>
 
         <p className="mt-6 text-sm text-muted">
           New here?{" "}

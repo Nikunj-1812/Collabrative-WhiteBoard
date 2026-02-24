@@ -30,6 +30,11 @@ export const setAuthSession = (token: string, user: AuthUser) => {
 export const clearAuthSession = () => {
   localStorage.removeItem("auth_token");
   localStorage.removeItem("auth_user");
+  // Clear sensitive data from sessionStorage if any
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem("user_id");
+    sessionStorage.removeItem("user_name");
+  }
 };
 
 export const apiFetch = async (path: string, options: RequestInit = {}) => {
@@ -48,8 +53,15 @@ export const apiFetch = async (path: string, options: RequestInit = {}) => {
   });
 
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || `Request failed: ${response.status}`);
+    try {
+      const data = await response.json();
+      throw new Error(data.error || `Request failed: ${response.status}`);
+    } catch (err) {
+      if (err instanceof Error && err.message.includes("Unexpected token")) {
+        throw new Error(`Request failed: ${response.status}`);
+      }
+      throw err;
+    }
   }
 
   if (response.status === 204) return null;

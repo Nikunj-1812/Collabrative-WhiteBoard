@@ -237,7 +237,7 @@ export default function BoardPage() {
   }
 
   // Show loading state while checking auth or waiting for boardId
-  if (isAuthed === false || !boardId) {
+  if (isAuthed === null || !boardId) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-bg">
         <div className="flex flex-col items-center justify-center gap-4 text-center">

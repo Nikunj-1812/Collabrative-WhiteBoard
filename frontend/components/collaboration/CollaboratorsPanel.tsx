@@ -122,11 +122,11 @@ export const CollaboratorsPanel = ({ socket, boardId, currentUserId, leaderId }:
                 isCurrentUser 
                   ? "bg-blue-50 border border-blue-200 dark:bg-blue-900 dark:border-blue-700" 
                   : isCursorLeader
-                  ? "bg-yellow-50 border-2 border-yellow-300 shadow-md dark:bg-yellow-900 dark:border-yellow-600"
+                  ? "bg-yellow-50 border border-yellow-300 dark:bg-yellow-900 dark:border-yellow-600"
                   : isSelected
                   ? "bg-red-50 border border-red-300 dark:bg-red-900 dark:border-red-600"
                   : cursor.isDrawing
-                  ? "bg-green-50 border-2 border-green-400 shadow-lg dark:bg-green-900 dark:border-green-600"
+                  ? "bg-green-50 border border-green-400 dark:bg-green-900 dark:border-green-600"
                   : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
               }`}
             >
@@ -140,13 +140,12 @@ export const CollaboratorsPanel = ({ socket, boardId, currentUserId, leaderId }:
                   />
                 )}
                 <div
-                  className={`h-2 w-2 rounded-full shadow-md flex-shrink-0 ${isCursorLeader ? 'ring-2 ring-yellow-400 ring-offset-1' : ''}`}
+                  className="h-2 w-2 rounded-full flex-shrink-0"
                   style={{ backgroundColor: cursor.color }}
                 />
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="font-semibold text-gray-800 dark:text-gray-200 truncate">
                     {cursor.name.split(' ')[0]}
-                    {isCurrentUser && " *"}
                   </span>
                   {isCursorLeader && (
                     <span className="inline-flex items-center flex-shrink-0 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-yellow-400 text-white">

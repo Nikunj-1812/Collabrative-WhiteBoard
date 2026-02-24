@@ -4,14 +4,32 @@
 
 @import "../styles/tokens.css";
 
+@keyframes themeChange {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 * {
   box-sizing: border-box;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+html {
+  animation: themeChange 0.3s ease-in-out;
 }
 
 html,
 body {
   height: 100%;
   overflow: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body {

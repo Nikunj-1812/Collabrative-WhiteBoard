@@ -12,10 +12,14 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
+    // Check if user is already authenticated
     if (getAuthToken()) {
       router.replace("/boards");
+    } else {
+      setIsCheckingAuth(false);
     }
   }, [router]);
 
@@ -24,7 +28,7 @@ export default function SignUpPage() {
     setError(null);
 
     const trimmedName = name.trim();
-    const trimmedEmail = email.trim();
+    const trimmedEmail = email.trim().toLowerCase();
 
     if (!trimmedName) {
       setError("Please enter your name.");
@@ -62,6 +66,18 @@ export default function SignUpPage() {
     }
   };
 
+  // Show loading while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-bg px-4 text-text">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-accent border-t-transparent"></div>
+          <p className="text-sm text-muted">Checking authentication...</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-bg px-4 text-text">
       <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-8 shadow-xl">
@@ -80,6 +96,8 @@ export default function SignUpPage() {
             className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text outline-none focus:border-accent"
             placeholder="Jane Doe"
             autoFocus
+            disabled={isSubmitting}
+            autoComplete="name"
           />
 
           <label className="block text-sm font-medium text-muted" htmlFor="email">
@@ -92,6 +110,8 @@ export default function SignUpPage() {
             onChange={(event) => setEmail(event.target.value)}
             className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text outline-none focus:border-accent"
             placeholder="you@example.com"
+            disabled={isSubmitting}
+            autoComplete="email"
           />
 
           <label className="block text-sm font-medium text-muted" htmlFor="password">
@@ -103,7 +123,9 @@ export default function SignUpPage() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text outline-none focus:border-accent"
-            placeholder="Create a password"
+            placeholder="Create a password (min. 6 characters)"
+            disabled={isSubmitting}
+            autoComplete="new-password"
           />
 
           <label className="block text-sm font-medium text-muted" htmlFor="confirmPassword">
@@ -116,9 +138,11 @@ export default function SignUpPage() {
             onChange={(event) => setConfirmPassword(event.target.value)}
             className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text outline-none focus:border-accent"
             placeholder="Repeat your password"
+            disabled={isSubmitting}
+            autoComplete="new-password"
           />
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
 
           <button
             type="submit"

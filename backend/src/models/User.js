@@ -42,22 +42,29 @@ class UserProxy {
     try {
       // Try MongoDB first
       if (mongoose.connection.readyState === 1) {
+        console.log("[User] Querying MongoDB with:", query);
         const user = await UserModel.findOne(query);
         if (user) {
           // Convert to plain object with id field
           const userObj = user.toObject();
           userObj.id = user._id.toString();
           delete userObj._id;
+          console.log("[User] MongoDB user found:", userObj.email);
           return userObj;
         }
       }
     } catch (err) {
-      console.log("[User] MongoDB query failed, falling back to in-memory store");
+      console.log("[User] MongoDB query failed, falling back to in-memory store:", err.message);
     }
 
     // Fallback to in-memory store
     if (query.email) {
-      return inMemoryUsers.get(query.email.toLowerCase()) || null;
+      const normalizedEmail = query.email.toLowerCase();
+      console.log("[User] Querying in-memory store for email:", normalizedEmail);
+      console.log("[User] Available users in memory:", Array.from(inMemoryUsers.keys()));
+      const user = inMemoryUsers.get(normalizedEmail);
+      console.log("[User] In-memory user found:", user ? user.email : "No");
+      return user || null;
     }
     if (query.id) {
       for (const user of inMemoryUsers.values()) {
@@ -90,6 +97,37 @@ class UserProxy {
     };
     inMemoryUsers.set(data.email.toLowerCase(), user);
     return user;
+  }
+
+  static async updatePassword(email, newPasswordHash) {
+    const normalizedEmail = email.toLowerCase();
+    
+    try {
+      // Try MongoDB first
+      if (mongoose.connection.readyState === 1) {
+        const result = await UserModel.updateOne(
+          { email: normalizedEmail },
+          { $set: { passwordHash: newPasswordHash } }
+        );
+        if (result.modifiedCount > 0) {
+          console.log("[User] MongoDB password updated for:", normalizedEmail);
+          return true;
+        }
+      }
+    } catch (err) {
+      console.log("[User] MongoDB update failed, falling back to in-memory store:", err.message);
+    }
+
+    // Fallback to in-memory store
+    const user = inMemoryUsers.get(normalizedEmail);
+    if (user) {
+      user.passwordHash = newPasswordHash;
+      inMemoryUsers.set(normalizedEmail, user);
+      console.log("[User] In-memory password updated for:", normalizedEmail);
+      return true;
+    }
+    
+    return false;
   }
 }
 
