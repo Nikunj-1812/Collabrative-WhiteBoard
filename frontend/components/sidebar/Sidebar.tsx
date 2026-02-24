@@ -75,8 +75,7 @@ export const Sidebar = ({ onAddNote, onClearAll, onImageUpload, socket, boardId,
     { id: "dotted", label: "Dotted", preview: "┄┄┄" },
     { id: "marker", label: "Marker", preview: "━━━", thick: true },
     { id: "highlighter", label: "Highlighter", preview: "▬▬▬", opacity: 0.5 },
-    { id: "pencil", label: "Pencil", preview: "╌╌╌" },
-    { id: "neon", label: "Neon", preview: "✨", neon: true }
+    { id: "wavy", label: "Wavy", preview: "〰️〰️" }
   ];
 
   const DRAWING_COLORS = [
