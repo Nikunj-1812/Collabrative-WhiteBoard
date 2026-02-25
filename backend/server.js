@@ -3,6 +3,7 @@ const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
 const mongoose = require("mongoose");
+const path = require("path");
 const { PORT, CLIENT_ORIGIN, MONGO_URI } = require("./src/config/env");
 const authRoutes = require("./src/routes/authRoutes");
 const boardRoutes = require("./src/routes/boardRoutes");
@@ -68,6 +69,16 @@ io.on("connection", (socket) => {
   registerBoardSocket(io, socket);
 });
 
+// Serve Next.js frontend static files
+const frontendBuildPath = path.join(__dirname, "../frontend/.next/standalone");
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/.next/static")));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/.next/standalone/index.js"));
+  });
+}
+
 server.listen(PORT, () => {
   console.log(`API server running on port ${PORT}`);
 });
+

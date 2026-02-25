@@ -175,10 +175,10 @@ export default function BoardsPage() {
                   setJoinDialogOpen(false);
                   setJoinBoardId("");
                 }}
-                className="p-1 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                className="p-1 hover:bg-gray-100 rounded-lg transition"
                 aria-label="Close dialog"
               >
-                <HiX size={24} />
+                <HiX size={24} className="text-gray-600" />
               </button>
             </div>
             <div className="space-y-4">
