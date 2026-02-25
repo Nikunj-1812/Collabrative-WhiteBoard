@@ -235,9 +235,7 @@ export const Sidebar = ({
                   onClick={() => setPenStyle(style.id)}
                   className={`flex flex-col items-center gap-1 rounded-lg border p-2 text-xs transition ${
                     penStyle === style.id
-                      ? style.neon 
-                        ? "border-accent bg-accent/10 text-accent shadow-lg shadow-accent/50"
-                        : "border-accent bg-accent/10 text-accent"
+                      ? "border-accent bg-accent/10 text-accent"
                       : "border-border bg-surface hover:bg-bg"
                   }`}
                 >
@@ -245,8 +243,7 @@ export const Sidebar = ({
                     className="text-lg tracking-wide"
                     style={{ 
                       fontWeight: style.thick ? 'bold' : 'normal',
-                      opacity: style.opacity || 1,
-                      textShadow: style.neon ? '0 0 8px currentColor' : 'none'
+                      opacity: style.opacity || 1
                     }}
                   >
                     {style.preview}
