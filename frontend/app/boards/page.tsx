@@ -75,8 +75,8 @@ export default function BoardsPage() {
     : boards;
 
   return (
-    <main className="min-h-screen bg-bg px-6 py-10 text-text">
-      <div className="mx-auto w-full max-w-5xl space-y-8">
+    <main className="min-h-screen bg-bg px-4 py-8 text-text sm:px-6 sm:py-10 lg:px-8">
+      <div className="mx-auto w-full max-w-6xl space-y-8">
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold">Your boards</h1>
@@ -94,25 +94,25 @@ export default function BoardsPage() {
                 </div>
               </div>
             )}
-            <div className="flex items-center gap-3">
-            <Link
-              href="/boards/new"
-              className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:from-blue-600 hover:to-blue-700"
-            >
-              New board
-            </Link>
-            <button
-              onClick={() => setJoinDialogOpen(true)}
-              className="rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:from-purple-600 hover:to-purple-700"
-            >
-              Join Board
-            </button>
-            <button
-              onClick={handleLogout}
-              className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text hover:bg-surface"
-            >
-              Logout
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/boards/new"
+                className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:from-blue-600 hover:to-blue-700"
+              >
+                New board
+              </Link>
+              <button
+                onClick={() => setJoinDialogOpen(true)}
+                className="rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:from-purple-600 hover:to-purple-700"
+              >
+                Join Board
+              </button>
+              <button
+                onClick={handleLogout}
+                className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text hover:bg-surface"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </header>
@@ -134,7 +134,7 @@ export default function BoardsPage() {
         )}
 
         {filteredBoards.length > 0 && (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredBoards.map((board) => (
               <div
                 key={board.id}

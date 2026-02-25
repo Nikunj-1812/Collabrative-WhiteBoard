@@ -69,7 +69,7 @@ export default function SignUpPage() {
   // Show loading while checking authentication
   if (isCheckingAuth) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-bg px-4 text-text">
+      <main className="flex min-h-screen items-center justify-center bg-bg px-4 py-8 text-text sm:py-10">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-accent border-t-transparent"></div>
           <p className="text-sm text-muted">Checking authentication...</p>
@@ -79,8 +79,8 @@ export default function SignUpPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-bg px-4 text-text">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-8 shadow-xl">
+    <main className="flex min-h-screen items-center justify-center bg-bg px-4 py-8 text-text sm:py-10">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl sm:p-8">
         <h1 className="text-2xl font-bold">Create account</h1>
         <p className="mt-2 text-sm text-muted">Set up your workspace in a few seconds.</p>
 

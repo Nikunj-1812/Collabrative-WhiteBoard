@@ -53,8 +53,8 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-bg px-4 text-text">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-8 shadow-xl">
+    <main className="flex min-h-screen items-center justify-center bg-bg px-4 py-8 text-text sm:py-10">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl sm:p-8">
         <h1 className="text-2xl font-bold">Forgot Password</h1>
         <p className="mt-2 text-sm text-muted">
           Enter your email address and we'll generate a reset token for you.

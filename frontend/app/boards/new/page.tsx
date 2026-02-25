@@ -58,14 +58,14 @@ export default function NewBoardPage() {
   };
 
   return (
-    <main className="min-h-screen bg-bg px-6 py-10 text-text">
+    <main className="min-h-screen bg-bg px-4 py-8 text-text sm:px-6 sm:py-10 lg:px-8">
       <div className="mx-auto w-full max-w-xl space-y-6">
         <div>
           <h1 className="text-2xl font-bold">Create new board</h1>
           <p className="text-sm text-muted">Give your board a name so others can recognize it.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
           <label className="block text-sm font-medium text-muted" htmlFor="title">
             Board title
           </label>

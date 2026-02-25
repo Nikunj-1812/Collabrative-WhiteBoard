@@ -61,8 +61,8 @@ export default function ResetPasswordPage() {
 
   if (success) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-bg px-4 text-text">
-        <div className="w-full max-w-md rounded-2xl border border-green-500 bg-surface p-8 shadow-xl text-center">
+      <main className="flex min-h-screen items-center justify-center bg-bg px-4 py-8 text-text sm:py-10">
+        <div className="w-full max-w-md rounded-2xl border border-green-500 bg-surface p-6 shadow-xl text-center sm:p-8">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
             <svg className="h-8 w-8 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -78,8 +78,8 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-bg px-4 text-text">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-8 shadow-xl">
+    <main className="flex min-h-screen items-center justify-center bg-bg px-4 py-8 text-text sm:py-10">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl sm:p-8">
         <h1 className="text-2xl font-bold">Reset Password</h1>
         <p className="mt-2 text-sm text-muted">
           Enter your reset token and choose a new password.

@@ -512,6 +512,35 @@ export const Canvas = ({
     [boardId, socket, userId]
   );
 
+  const applyAutoPan = (event: React.PointerEvent, rect: DOMRect) => {
+    const shouldAutoPan =
+      isDrawingRef.current ||
+      isDrawingRectRef.current ||
+      isDrawingArrowRef.current ||
+      isSelectingRef.current ||
+      isMovingRef.current;
+    if (!shouldAutoPan) return;
+
+    const edge = 24;
+    const speed = 12;
+    const distLeft = event.clientX - rect.left;
+    const distRight = rect.right - event.clientX;
+    const distTop = event.clientY - rect.top;
+    const distBottom = rect.bottom - event.clientY;
+
+    let dx = 0;
+    let dy = 0;
+
+    if (distLeft < edge) dx = speed;
+    else if (distRight < edge) dx = -speed;
+    if (distTop < edge) dy = speed;
+    else if (distBottom < edge) dy = -speed;
+
+    if (dx !== 0 || dy !== 0) {
+      pan(dx, dy);
+    }
+  };
+
   const handlePointerMove = (event: React.PointerEvent) => {
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -525,6 +554,8 @@ export const Canvas = ({
       setCaptureRect({ x, y, width, height });
       return;
     }
+
+    applyAutoPan(event, rect);
 
     if (activeTool === "PAN" && isPanningRef.current && lastPointRef.current) {
       const dx = event.movementX || event.clientX - lastPointRef.current.x;

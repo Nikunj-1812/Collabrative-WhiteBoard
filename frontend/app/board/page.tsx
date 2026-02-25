@@ -15,7 +15,7 @@ import { useUIStore } from "@/store/uiStore";
 import { useHotkeys } from "@/hooks/useHotkeys";
 import { randomColor } from "@/utils/randomColor";
 import { getAuthToken, getAuthUser } from "@/utils/api";
-import { HiShare } from "react-icons/hi";
+import { HiMenu, HiShare } from "react-icons/hi";
 
 export default function BoardPage() {
   const router = useRouter();
@@ -39,6 +39,7 @@ export default function BoardPage() {
   const [leaderId, setLeaderId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   useHotkeys();
   const authUser = useMemo(() => getAuthUser(), []);
 
@@ -197,6 +198,7 @@ export default function BoardPage() {
     };
   }, []);
 
+
   const handleAddNote = (color: string) => {
     const note = { id: crypto.randomUUID(), x: 120, y: 120, text: "New note", color };
     addNote(note);
@@ -250,15 +252,41 @@ export default function BoardPage() {
 
   return (
     <main className="relative flex h-screen w-screen overflow-hidden bg-bg text-text">
-      <Sidebar 
-        onAddNote={handleAddNote} 
-        onClearAll={handleClearAll} 
-        onImageUpload={handleImageUpload}
-        socket={socket}
-        boardId={boardId}
-        currentUserId={user.id}
-        leaderId={leaderId || undefined}
-      />
+      <div
+        className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-200 md:static md:z-auto md:w-64 md:translate-x-0 ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <Sidebar
+          onAddNote={handleAddNote}
+          onClearAll={handleClearAll}
+          onImageUpload={handleImageUpload}
+          socket={socket}
+          boardId={boardId}
+          currentUserId={user.id}
+          leaderId={leaderId || undefined}
+          isMobile
+          onClose={() => setIsSidebarOpen(false)}
+          className="lg:border-r"
+        />
+      </div>
+      {isSidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close sidebar overlay"
+          className="fixed inset-0 z-40 bg-black/40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      <button
+        type="button"
+        onClick={() => setIsSidebarOpen((prev) => !prev)}
+        className="pointer-events-auto fixed left-3 top-3 z-[70] flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface/90 text-text shadow-md hover:bg-surface md:hidden"
+        aria-label="Open sidebar"
+        aria-expanded={isSidebarOpen}
+      >
+        <HiMenu size={20} />
+      </button>
       <div className="relative flex flex-1">
         <Canvas
           socket={socket}
@@ -272,8 +300,8 @@ export default function BoardPage() {
           canvasStateRef={canvasStateRef}
         />
         <CursorLayer />
-        <div className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 z-50">
-          <div className="pointer-events-auto flex items-center gap-2 rounded-2xl border border-gray-200 bg-white p-2 shadow-2xl">
+        <div className="pointer-events-none absolute left-1/2 bottom-3 z-50 w-[calc(100%-1.5rem)] -translate-x-1/2 sm:bottom-4 sm:w-auto md:top-4 md:bottom-auto">
+          <div className="pointer-events-auto flex flex-nowrap items-center justify-start gap-2 rounded-2xl border border-gray-200 bg-white p-2 shadow-2xl overflow-x-auto sm:justify-center">
             <ToolbarWithClear
               onClearAll={handleClearAll}
               onUndo={handleUndo}
@@ -283,7 +311,7 @@ export default function BoardPage() {
             <div className="mx-1 h-6 w-px bg-gray-300" />
             <button
               onClick={() => setShareDialogOpen(true)}
-              className="h-11 w-11 rounded-lg flex items-center justify-center border-2 border-green-400 bg-gradient-to-br from-green-50 to-green-100 text-green-600 shadow-md hover:shadow-lg hover:border-green-500 hover:from-green-100 hover:to-green-150 active:scale-95 cursor-pointer transition-all duration-200"
+              className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 lg:h-11 lg:w-11 rounded-lg flex items-center justify-center border-2 border-green-400 bg-gradient-to-br from-green-50 to-green-100 text-green-600 shadow-md hover:shadow-lg hover:border-green-500 hover:from-green-100 hover:to-green-150 active:scale-95 cursor-pointer transition-all duration-200"
               aria-label="Share board"
               title="Share Board"
             >
@@ -291,7 +319,7 @@ export default function BoardPage() {
             </button>
           </div>
         </div>
-        <div className="absolute right-4 top-4 z-40">
+        <div className="absolute right-3 top-3 z-40 sm:right-4 sm:top-4">
           <AvatarStack />
         </div>
         <ShareDialog

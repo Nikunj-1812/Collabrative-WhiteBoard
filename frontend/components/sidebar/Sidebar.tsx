@@ -7,7 +7,7 @@ import { useUIStore } from "@/store/uiStore";
 import { clearAuthSession } from "@/utils/api";
 import { CollaboratorsPanel } from "@/components/collaboration/CollaboratorsPanel";
 import { FaMousePointer, FaPen, FaShapes, FaFont, FaStickyNote, FaEraser, FaHandPaper, FaImage } from 'react-icons/fa';
-import { HiTrash, HiMoon, HiSun, HiLogout, HiArrowRight } from 'react-icons/hi';
+import { HiTrash, HiMoon, HiSun, HiLogout, HiArrowRight, HiX } from 'react-icons/hi';
 import { BsSquareFill, BsCircleFill, BsTriangleFill, BsDiamondFill, BsStarFill, BsArrowRightShort } from 'react-icons/bs';
 import type { Socket } from 'socket.io-client';
 
@@ -19,9 +19,23 @@ interface SidebarProps {
   boardId?: string;
   currentUserId?: string;
   leaderId?: string;
+  isMobile?: boolean;
+  onClose?: () => void;
+  className?: string;
 }
 
-export const Sidebar = ({ onAddNote, onClearAll, onImageUpload, socket, boardId, currentUserId, leaderId }: SidebarProps) => {
+export const Sidebar = ({
+  onAddNote,
+  onClearAll,
+  onImageUpload,
+  socket,
+  boardId,
+  currentUserId,
+  leaderId,
+  isMobile,
+  onClose,
+  className
+}: SidebarProps) => {
   const router = useRouter();
   const notes = useBoardStore((state) => state.notes);
   const stickyColor = useUIStore((state) => state.stickyColor);
@@ -117,7 +131,25 @@ export const Sidebar = ({ onAddNote, onClearAll, onImageUpload, socket, boardId,
   };
 
   return (
-    <aside className="pointer-events-auto flex h-full w-64 flex-col gap-4 border-r border-border bg-surface/80 p-4 backdrop-blur overflow-y-auto">
+    <aside
+      className={`pointer-events-auto flex h-full w-full flex-col gap-4 border-r border-border bg-surface/80 p-4 backdrop-blur overflow-y-auto ${className || ""}`}
+    >
+      {isMobile && (
+        <div className="flex items-center justify-between md:hidden">
+          <div>
+            <p className="text-sm font-semibold">Board tools</p>
+            <p className="text-xs text-muted">Quick actions</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-bg text-text hover:bg-surface"
+            aria-label="Close sidebar"
+          >
+            <HiX size={18} />
+          </button>
+        </div>
+      )}
       <div>
         <p className="text-sm font-semibold">Notes</p>
         <p className="text-xs text-muted">{notes.length} active</p>
