@@ -69,12 +69,18 @@ io.on("connection", (socket) => {
   registerBoardSocket(io, socket);
 });
 
-// Serve Next.js frontend static files
-const frontendBuildPath = path.join(__dirname, "../frontend/.next/standalone");
+// Serve Next.js frontend static export in production
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/.next/static")));
+  const frontendDir = path.join(__dirname, "../frontend/out");
+  // Serve static files
+  app.use(express.static(frontendDir));
+  // Catch-all: serve index.html for client-side routing
   app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/.next/standalone/index.js"));
+    res.sendFile(path.join(frontendDir, "index.html"), (err) => {
+      if (err) {
+        res.status(404).json({ error: "Not found" });
+      }
+    });
   });
 }
 

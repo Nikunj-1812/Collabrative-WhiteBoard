@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: "standalone",
+  output: "export", // Static export for production
+  distDir: "out", // Output to 'out' directory
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {

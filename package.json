@@ -8,8 +8,8 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm -w frontend run dev\" \"npm -w backend run dev\"",
-    "build": "npm install && npm -w frontend run build",
-    "start": "npm -w backend run start"
+    "build": "npm -w frontend run build",
+    "start": "node index.js"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
