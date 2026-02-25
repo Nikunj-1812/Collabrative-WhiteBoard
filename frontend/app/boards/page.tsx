@@ -178,7 +178,9 @@ export default function BoardsPage() {
                 className="p-1 hover:bg-gray-100 rounded-lg transition"
                 aria-label="Close dialog"
               >
-                <HiX size={24} className="text-gray-600" />
+                <span className="text-gray-600">
+                  <HiX size={24} />
+                </span>
               </button>
             </div>
             <div className="space-y-4">
