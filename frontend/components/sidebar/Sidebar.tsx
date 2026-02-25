@@ -84,12 +84,12 @@ export const Sidebar = ({
   ];
 
   const PEN_STYLES = [
-    { id: "solid", label: "Solid", preview: "━━━" },
-    { id: "dashed", label: "Dashed", preview: "╍╍╍" },
-    { id: "dotted", label: "Dotted", preview: "┄┄┄" },
-    { id: "marker", label: "Marker", preview: "━━━", thick: true },
-    { id: "highlighter", label: "Highlighter", preview: "▬▬▬", opacity: 0.5 },
-    { id: "wavy", label: "Wavy", preview: "〰️〰️" }
+    { id: "solid", label: "Solid", preview: "━━━", neon: false },
+    { id: "dashed", label: "Dashed", preview: "╍╍╍", neon: false },
+    { id: "dotted", label: "Dotted", preview: "┄┄┄", neon: false },
+    { id: "marker", label: "Marker", preview: "━━━", thick: true, neon: false },
+    { id: "highlighter", label: "Highlighter", preview: "▬▬▬", opacity: 0.5, neon: false },
+    { id: "wavy", label: "Wavy", preview: "〰️〰️", neon: false }
   ];
 
   const DRAWING_COLORS = [
