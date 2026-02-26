@@ -26,10 +26,24 @@ const allowedOrigins = new Set([
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.has(origin)) {
+      // Allow no origin (for non-browser requests)
+      if (!origin) {
         callback(null, true);
         return;
       }
+      
+      // Allow if origin is in the allowed set
+      if (allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+      
+      // Allow all Vercel deployments (production and preview)
+      if (origin.endsWith('.vercel.app')) {
+        callback(null, true);
+        return;
+      }
+      
       callback(new Error("Not allowed by CORS"));
     },
     credentials: true
@@ -56,8 +70,16 @@ app.use("/api/auth", authRoutes);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: Array.from(allowedOrigins),
-    methods: ["GET", "POST"]
+    origin: (origin, callback) => {
+      // Allow all Vercel deployments and configured origins
+      if (!origin || allowedOrigins.has(origin) || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
