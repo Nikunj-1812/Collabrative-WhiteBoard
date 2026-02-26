@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Canvas } from "@/components/canvas/Canvas";
 import { ToolbarWithClear } from "@/components/toolbar/Toolbar";
@@ -17,7 +17,7 @@ import { randomColor } from "@/utils/randomColor";
 import { getAuthToken, getAuthUser } from "@/utils/api";
 import { HiMenu, HiShare } from "react-icons/hi";
 
-export default function BoardPage() {
+function BoardPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [boardId, setBoardId] = useState<string | null>(null);
@@ -329,5 +329,22 @@ export default function BoardPage() {
         />
       </div>
     </main>
+  );
+}
+
+export default function BoardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen w-screen items-center justify-center bg-bg">
+          <div className="flex flex-col items-center justify-center gap-4 text-center">
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-accent border-t-transparent"></div>
+            <p className="text-base font-medium text-text">Loading board...</p>
+          </div>
+        </div>
+      }
+    >
+      <BoardPageContent />
+    </Suspense>
   );
 }

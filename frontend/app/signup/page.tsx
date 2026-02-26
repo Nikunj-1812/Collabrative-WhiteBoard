@@ -51,14 +51,17 @@ export default function SignUpPage() {
 
     setIsSubmitting(true);
     try {
+      console.log('[Signup] Attempting signup with:', { name: trimmedName, email: trimmedEmail });
       const payload = await apiFetch("/api/auth/signup", {
         method: "POST",
         body: JSON.stringify({ name: trimmedName, email: trimmedEmail, password })
       });
+      console.log('[Signup] Signup successful:', payload);
 
       setAuthSession(payload.token, payload.user);
       router.push("/boards");
     } catch (err) {
+      console.error('[Signup] Signup error:', err);
       const message = err instanceof Error ? err.message : "Sign up failed";
       setError(message);
     } finally {
